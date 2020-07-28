@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd">
+    <context:property-placeholder location="classpath:rabbitmq.properties"/>
+    <rabbit:connection-factory id="connectionFactory" host="${rabbit.host}"
+                               port="${rabbit.port}" virtual-host="${rabbit.virtural-host}"
+                               username="${rabbit.username}" password="${rabbit.password}"/>
+    <!--    定义管理交换机、队列-->
+    <rabbit:admin connection-factory="connectionFactory"/>
+    <bean id="springQueueListener" class="com.kanouakira.listener.SpringQueueListener"/>
+    <bean id="springFanoutListener1" class="com.kanouakira.listener.SpringFanoutListener1"/>
+    <bean id="springFanoutListener2" class="com.kanouakira.listener.SpringFanoutListener2"/>
+    <bean id="springTopicListener1" class="com.kanouakira.listener.SpringTopicListener1"/>
+    <bean id="springTopicListener2" class="com.kanouakira.listener.SpringTopicListener2"/>
+    <rabbit:listener-container connection-factory="connectionFactory" auto-declare="true">
+        <rabbit:listener queue-names="spring_queue" ref="springQueueListener"></rabbit:listener>
+        <rabbit:listener queue-names="spring_fanout_queue_one" ref="springFanoutListener1"></rabbit:listener>
+        <rabbit:listener queue-names="spring_fanout_queue_two" ref="springFanoutListener2"></rabbit:listener>
+        <rabbit:listener queue-names="spring_topic_queue_one" ref="springTopicListener1"></rabbit:listener>
+        <rabbit:listener queue-names="spring_topic_queue_two" ref="springTopicListener2"></rabbit:listener>
+    </rabbit:listener-container>
+
+</beans>

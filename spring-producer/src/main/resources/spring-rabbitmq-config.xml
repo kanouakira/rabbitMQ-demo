@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
+    <context:property-placeholder location="classpath:rabbitmq.properties"/>
+    <rabbit:connection-factory id="connectionFactory" host="${rabbit.host}"
+                               port="${rabbit.port}" virtual-host="${rabbit.virtural-host}"
+                               username="${rabbit.username}" password="${rabbit.password}"/>
+<!--    定义管理交换机、队列-->
+    <rabbit:admin connection-factory="connectionFactory"/>
+    
+<!--    hello world 形式 单生产者 无交换机 单队列 单消费者-->
+    <rabbit:queue id="spring_queue" name="spring_queue" auto-declare="true"/>
+<!--    fanout 广播形式 单生产者 fanout交换机 多队列 多消费者-->
+    <rabbit:queue id="spring_fanout_queue_one" name="spring_fanout_queue_one" auto-declare="true"/>
+    <rabbit:queue id="spring_fanout_queue_two" name="spring_fanout_queue_two" auto-declare="true"/>
+    <rabbit:fanout-exchange id="spring_fanout_exchange" name="spring_fanout_exchange" auto-declare="true">
+        <rabbit:bindings>
+            <rabbit:binding queue="spring_fanout_queue_one"/>
+            <rabbit:binding queue="spring_fanout_queue_two"/>
+        </rabbit:bindings>
+    </rabbit:fanout-exchange>
+<!--    topic 通配符形式 单生产者 topic交换机 多队列 多消费者-->
+    <rabbit:queue id="spring_topic_queue_one" name="spring_topic_queue_one" auto-declare="true"/>
+    <rabbit:queue id="spring_topic_queue_two" name="spring_topic_queue_two" auto-declare="true"/>
+    <rabbit:topic-exchange id="spring_topic_exchange" name="spring_topic_exchange" auto-declare="true">
+        <rabbit:bindings>
+<!--            通配符*表示匹配一个例如kanouakira.xxx-->
+<!--            通配符#表示匹配所有例如xxx.xxx.kanouakira-->
+            <rabbit:binding pattern="kanouakira.*" queue="spring_topic_queue_one"/>
+            <rabbit:binding pattern="#.kanouakira" queue="spring_topic_queue_two"/>
+        </rabbit:bindings>
+    </rabbit:topic-exchange>
+
+    <bean class="org.springframework.amqp.rabbit.core.RabbitTemplate">
+        <property name="connectionFactory" ref="connectionFactory"></property>
+    </bean>
+</beans>
